@@ -36,3 +36,12 @@ def test_empty_file_loads_as_empty_and_counts_as_silent(tmp_path):
 def test_quiet_noise_is_silent_but_speech_level_is_not():
     assert is_silent(tone(1.0, amp=0.0005))
     assert not is_silent(tone(1.0, amp=0.1))
+
+
+def test_load_wav_accepts_a_file_like_object():
+    import io
+
+    buf = io.BytesIO()
+    sf.write(buf, tone(0.5), SAMPLE_RATE, format="WAV", subtype="PCM_16")
+    buf.seek(0)
+    assert abs(len(load_wav(buf)) - SAMPLE_RATE // 2) <= 1

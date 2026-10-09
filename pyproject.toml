@@ -7,10 +7,10 @@ name = "stt"
 version = "0.0.1"
 description = "Local speech-to-text daemon and bake-off harness for DeepSeek Harness voice control"
 requires-python = ">=3.12"
-dependencies = ["numpy", "soundfile", "sounddevice", "faster-whisper", "sherpa-onnx"]
+dependencies = ["numpy", "soundfile", "sounddevice", "faster-whisper", "sherpa-onnx", "fastapi", "uvicorn[standard]"]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "httpx"]
 kws-tools = ["sentencepiece", "pypinyin"]  # only for `sherpa-onnx-cli text2token` (regenerating keywords.txt)
 
 [tool.setuptools.packages.find]
