@@ -6,3 +6,5 @@ results/
 models/
 .superpowers/
 config.toml
+stt-secret
+*.flag

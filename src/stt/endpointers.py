@@ -62,8 +62,14 @@ def make_vad(model_path: str, buffer_s: float = 30, min_silence_s: float = 0.25)
 
 
 def make_endpointer(config, *, vad_factory=None):
+    if config.vad == "energy":
+        log.warning("vad = energy: using the loudness gate, which is worse in noise")
+        return EnergyEndpointer()
     model = Path(config.vad_model)
     if not model.is_file():
-        log.warning("VAD model %s not found; using the loudness gate, which is worse in noise", model)
-        return EnergyEndpointer()
+        # A silent fallback would turn fan noise or a call into "utterances" that an engine then makes words of.
+        raise FileNotFoundError(
+            f"VAD model {model} not found: download silero_vad.onnx (see README) or set vad = \"energy\" in the config "
+            "to accept the weaker loudness gate"
+        )
     return SileroEndpointer((vad_factory or make_vad)(str(model)))

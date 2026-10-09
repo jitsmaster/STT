@@ -12,6 +12,7 @@ from .endpointers import make_endpointer
 from .engines.base import Hints
 from .engines.factory import build_engines
 from .hotkey import HotkeyListener
+from .logs import install_token_redaction
 from .mic import MicSource, capture_loop, resolve_device
 from .pipeline import Bus, Pipeline
 from .server import create_app
@@ -87,8 +88,13 @@ async def run_daemon(config) -> None:
     hotkey.start()  # raises OSError when the combination is taken: fail before the port opens
     try:
         await warm_up(engines)
-        server = uvicorn.Server(uvicorn.Config(app, host=config.host, port=config.port, log_level="info", access_log=False))
+        uvicorn_config = uvicorn.Config(app, host=config.host, port=config.port, log_level="info", access_log=False)
+        install_token_redaction()  # after uvicorn configured its loggers: the WebSocket URL (with the token) is logged at INFO
+        server = uvicorn.Server(uvicorn_config)
         capture = asyncio.create_task(capture_loop(pipeline, source, wake is not None))
+        capture.add_done_callback(
+            lambda t: not t.cancelled() and t.exception() and log.error("capture loop died: %r", t.exception())
+        )
         try:
             await server.serve()
         finally:

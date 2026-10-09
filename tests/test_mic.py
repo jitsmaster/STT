@@ -154,3 +154,50 @@ def test_a_mic_that_cannot_open_reports_once_cancels_and_keeps_retrying():
         await stop_task(task)
 
     run(scenario())
+
+
+def test_the_capture_loop_survives_a_pipeline_exception_and_reports_it():
+    async def scenario():
+        pipe, bus, calls, engines = build()
+        q = bus.subscribe()
+        src = FakeSource()
+        real_feed = pipe.feed
+        boom = {"left": 1}
+
+        def feed(frame):
+            if boom["left"]:
+                boom["left"] -= 1
+                raise RuntimeError("vad exploded")
+            real_feed(frame)
+
+        pipe.feed = feed
+        task = asyncio.create_task(capture_loop(pipe, src, False, poll_s=0.005, retry_s=0.01))
+        pipe.trigger("hotkey")
+        src.frames += [LOUD]
+        events = await collect(q, 3)
+        assert [e["type"] for e in events] == ["listening", "error", "idle"]
+        assert "vad exploded" in events[1]["message"] and pipe.state == "idle" and not task.done()
+        pipe.trigger("hotkey")
+        await asyncio.sleep(0.05)
+        src.frames += [LOUD, LOUD, QUIET, QUIET]
+        events = await collect(q, 4)
+        assert [e["type"] for e in events] == ["listening", "transcribing", "transcript", "idle"]
+        await stop_task(task)
+
+    run(scenario())
+
+
+def test_a_listening_window_whose_frames_stop_arriving_is_cancelled_with_an_error():
+    async def scenario():
+        pipe, bus, calls, engines = build()
+        q = bus.subscribe()
+        src = FakeSource()
+        task = asyncio.create_task(capture_loop(pipe, src, False, poll_s=0.005, stall_s=0.05))
+        pipe.trigger("hotkey", {"target": "s1"})
+        events = await collect(q, 3)
+        assert [e["type"] for e in events] == ["listening", "error", "idle"]
+        assert "no audio" in events[1]["message"] and events[2]["reason"] == "cancelled"
+        assert events[1]["context"] == {"target": "s1"} and pipe.state == "idle"
+        await stop_task(task)
+
+    run(scenario())

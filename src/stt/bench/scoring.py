@@ -1,11 +1,13 @@
 import re
 import unicodedata
 
+from stt.textnorm import to_simplified
+
 _CJK = re.compile(r"[\u4e00-\u9fff]")
 
 
 def normalize(text: str) -> str:
-    t = unicodedata.normalize("NFKC", text).lower()
+    t = to_simplified(unicodedata.normalize("NFKC", text)).lower()
     t = re.sub(r"[^\w\s]", " ", t)  # \w keeps digits, letters and Chinese characters
     return re.sub(r"\s+", " ", t).strip()
 

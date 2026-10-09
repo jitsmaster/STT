@@ -45,6 +45,11 @@ class Pipeline:
     def state(self):
         return self.core.state
 
+    @property
+    def context(self):
+        """The context of the current listening window (None when idle or when the window has none)."""
+        return self.core.context
+
     def _idle(self, reason, context):
         self.bus.publish({"type": "idle", "reason": reason, "context": context})
 

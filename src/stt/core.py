@@ -6,6 +6,7 @@ EPS = 1e-9
 
 
 class ListenerCore:
+    PRE_ROLL_S = 0.3  # leading silence kept in front of the first speech frame
     def __init__(self, endpointer, *, no_speech_s=5.0, silence_end_s=0.8, max_s=30.0, min_speech_s=0.25):
         self.endpointer = endpointer
         self.no_speech_s, self.silence_end_s, self.max_s, self.min_speech_s = no_speech_s, silence_end_s, max_s, min_speech_s
@@ -14,7 +15,21 @@ class ListenerCore:
 
     def _reset(self):
         self._frames, self._speech, self._silence, self._waited, self._total = [], 0.0, 0.0, 0.0, 0.0
+        self._lead = 0.0
         self._source, self._context, self._window = "", None, self.no_speech_s
+
+    @property
+    def context(self):
+        return self._context
+
+    def _trimmed(self):
+        """Drop the leading silence beyond PRE_ROLL_S: up to 5 s of waiting would dilute quiet speech in the
+        loudness gate and give the engine a long silent head."""
+        drop, frames = self._lead - self.PRE_ROLL_S, self._frames
+        while len(frames) > 1 and drop >= len(frames[0]) / SAMPLE_RATE - EPS:
+            drop -= len(frames[0]) / SAMPLE_RATE
+            frames = frames[1:]
+        return np.concatenate(frames)
 
     def trigger(self, source, context=None, window_s=None):
         if self.state == "listening":
@@ -38,7 +53,7 @@ class ListenerCore:
             return self._idle("no_speech")
         if self._speech < self.min_speech_s - EPS:
             return self._idle("too_short")
-        ev = {"type": "utterance", "audio": np.concatenate(self._frames), "source": self._source,
+        ev = {"type": "utterance", "audio": self._trimmed(), "source": self._source,
               "context": self._context, "reason": reason}
         self.state = "idle"
         self._reset()
@@ -51,6 +66,8 @@ class ListenerCore:
         self._frames.append(frame)
         self._total += dur
         if self.endpointer.is_speech(frame):
+            if self._speech == 0:
+                self._lead = self._total - dur
             self._speech += dur
             self._silence = 0.0
         elif self._speech > 0:

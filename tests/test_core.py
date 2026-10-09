@@ -72,3 +72,11 @@ def test_finish_ends_early_and_cancel_discards():
 def test_energy_endpointer_uses_loudness():
     e = EnergyEndpointer(0.05)
     assert e.is_speech(np.full(1600, 0.2, dtype="float32")) and not e.is_speech(FRAME)
+
+
+def test_leading_silence_is_trimmed_to_a_short_pre_roll_so_it_cannot_dilute_quiet_speech():
+    c = make("....." + "SSS" + "..", no_speech_s=1.0)
+    c.trigger("api")
+    (ev,) = feed(c, 10)
+    assert ev["reason"] == "silence"
+    assert len(ev["audio"]) == (3 + 3 + 2) * 1600  # 0.3 s pre-roll, the speech, the trailing silence

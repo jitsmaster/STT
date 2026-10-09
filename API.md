@@ -31,7 +31,7 @@ Shared secret in `<state_dir>\stt-secret`, created on first start (64 hex charac
 {"type": "error", "message": "...", "context": null}
 ```
 
-A normal utterance is `listening`, `transcribing`, `transcript`, `idle(done)`. No speech inside the window is `listening`, `idle(no_speech)`. `transcript.text` can be empty (the engine heard nothing usable): ignore it. `revision` is 1 for the fast first pass and 2 after `/retranscribe`; `id` stays the same. `confidence` is 0.0 when the engine reports none. A client that stops reading loses events instead of blocking the daemon, so reconnect and rely on `hello.state`.
+A normal utterance is `listening`, `transcribing`, `transcript`, `idle(done)`. No speech inside the window is `listening`, `idle(no_speech)`. `transcript.text` can be empty (the engine heard nothing usable): ignore it. `revision` is 1 for the fast first pass and 2 after `/retranscribe`; `id` stays the same. `confidence` is 0.0 when the engine reports none: faster-whisper derives it from the segments (exp of the mean average log-probability, times one minus the mean no-speech probability; 0.0 when nothing was kept), SenseVoice reports none. Whisper output in Traditional Chinese is converted to Simplified, which is what the command grammar uses. A client that stops reading loses events instead of blocking the daemon, so reconnect and rely on `hello.state`.
 
 ## Behaviour a client must know
 

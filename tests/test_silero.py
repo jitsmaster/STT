@@ -1,5 +1,4 @@
 import dataclasses
-import logging
 
 import numpy as np
 
@@ -66,12 +65,13 @@ def test_reset_resets_the_detector_and_drops_the_carried_samples():
     assert vad.resets == 1 and len(vad.lengths) - before == 3  # 1600 // 512, not 3.2 windows' worth
 
 
-def test_a_missing_vad_model_falls_back_to_the_loudness_gate_with_a_warning(caplog):
+def test_a_missing_vad_model_stops_startup_unless_the_loudness_gate_is_chosen_explicitly():
+    import pytest
+
     cfg = dataclasses.replace(load_config(None), vad_model="no/such/model.onnx")
-    with caplog.at_level(logging.WARNING, logger="stt"):
-        ep = make_endpointer(cfg)
-    assert isinstance(ep, EnergyEndpointer)
-    assert "VAD model" in caplog.text
+    with pytest.raises(FileNotFoundError, match="vad = .energy."):
+        make_endpointer(cfg)
+    assert isinstance(make_endpointer(dataclasses.replace(cfg, vad="energy")), EnergyEndpointer)
 
 
 def test_an_existing_vad_model_gives_the_silero_endpointer(tmp_path):

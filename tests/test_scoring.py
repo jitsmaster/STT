@@ -37,3 +37,10 @@ def test_numbers_as_digits_words_chinese_and_san():
     assert not number_ok("tree", 3)
     assert number_ok("option 2", 2)
     assert numbers_in("stop 三号") == [3]
+
+
+def test_traditional_and_simplified_chinese_score_as_the_same_text():
+    assert token_error_rate("\u7801\u519c \u72b6\u6001", "\u78bc\u8fb2 \u72c0\u614b") == 0.0
+    from stt.bench.intents import match_intent
+
+    assert match_intent("\u975c\u97f3") == "mute" and match_intent("\u91cd\u8907") == "repeat"

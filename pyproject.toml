@@ -7,7 +7,7 @@ name = "stt"
 version = "0.0.1"
 description = "Local speech-to-text daemon and bake-off harness for DeepSeek Harness voice control"
 requires-python = ">=3.12"
-dependencies = ["numpy", "soundfile", "sounddevice", "faster-whisper", "sherpa-onnx", "fastapi", "uvicorn[standard]"]
+dependencies = ["numpy", "soundfile", "sounddevice", "faster-whisper", "sherpa-onnx", "fastapi", "uvicorn[standard]", "zhconv"]
 
 [project.optional-dependencies]
 dev = ["pytest", "httpx"]

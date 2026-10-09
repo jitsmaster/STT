@@ -1,11 +1,14 @@
 import asyncio
+import logging
 import queue
+import time
 
 import numpy as np
 
 from .audio import SAMPLE_RATE
 
 FRAME_SAMPLES = 1600  # 0.1 s
+log = logging.getLogger("stt")
 
 
 def resolve_device(devices, query):
@@ -79,32 +82,63 @@ class MicSource:
             return None
 
 
-async def capture_loop(pipeline, source, wake_enabled, *, poll_s=0.02, retry_s=1.0):
-    """Feed mic frames to the pipeline. The mic is open only while listening, unless the wake word is on."""
+def _fail(pipeline, message):
+    """Report a microphone problem for the current window (if any) and close it."""
+    pipeline.bus.publish({"type": "error", "message": message, "context": pipeline.context})
+    pipeline.cancel()
+
+
+async def capture_loop(pipeline, source, wake_enabled, *, poll_s=0.02, retry_s=1.0, stall_s=2.0):
+    """Feed mic frames to the pipeline. The mic is open only while listening, unless the wake word is on.
+
+    Supervised: an exception anywhere in an iteration (a failing stop(), the VAD, the spotter) is logged, reported
+    as an error event, ends the current window and the loop carries on. A listening window whose frames stop
+    arriving (device unplugged) is closed after stall_s seconds of wall-clock time."""
     last_error = None
+    last_frame = time.monotonic()
+    was_listening = False
     try:
         while True:
-            want = wake_enabled or pipeline.state == "listening"
-            if not want:
-                if source.started:
-                    source.stop()
-                await asyncio.sleep(poll_s)
-                continue
-            if not source.started:
-                try:
-                    source.start()
-                    last_error = None
-                except Exception as exc:
-                    message = "microphone unavailable: " + str(exc)
-                    if message != last_error:
-                        last_error = message
-                        pipeline.bus.publish({"type": "error", "message": message, "context": None})
-                    pipeline.cancel()
-                    await asyncio.sleep(retry_s)
+            try:
+                listening = pipeline.state == "listening"
+                if listening and not was_listening:
+                    last_frame = time.monotonic()
+                was_listening = listening
+                want = wake_enabled or listening
+                if not want:
+                    if source.started:
+                        source.stop()
+                    await asyncio.sleep(poll_s)
                     continue
-            frame = await asyncio.to_thread(source.next_frame, 0.1)
-            if frame is not None:
-                pipeline.feed(frame)
+                if not source.started:
+                    try:
+                        source.start()
+                        last_error = None
+                    except Exception as exc:
+                        message = "microphone unavailable: " + str(exc)
+                        if message != last_error:
+                            last_error = message
+                            pipeline.bus.publish({"type": "error", "message": message, "context": pipeline.context})
+                        pipeline.cancel()
+                        await asyncio.sleep(retry_s)
+                        continue
+                frame = await asyncio.to_thread(source.next_frame, 0.1)
+                if frame is not None:
+                    last_frame = time.monotonic()
+                    pipeline.feed(frame)
+                elif listening and time.monotonic() - last_frame > stall_s:
+                    _fail(pipeline, "no audio from the microphone for %.1f s" % stall_s)
+                    source.stop()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                log.exception("capture loop iteration failed")
+                _fail(pipeline, "microphone loop failed: " + str(exc))
+                try:
+                    source.stop()
+                except Exception:
+                    log.exception("closing the microphone failed")
+                await asyncio.sleep(retry_s)
     finally:
         if source.started:
             source.stop()

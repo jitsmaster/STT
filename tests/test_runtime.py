@@ -70,3 +70,8 @@ def test_a_bad_config_is_reported_on_stderr_with_exit_code_1(tmp_path, capsys):
     bad.write_text("prot = 1\n", encoding="utf-8")
     assert main(["serve", "--config", str(bad)]) == 1
     assert "unknown config keys" in capsys.readouterr().err
+
+
+def test_a_config_path_given_on_the_command_line_must_exist(tmp_path, capsys):
+    assert main(["serve", "--config", str(tmp_path / "missing.toml")]) == 1
+    assert "not found" in capsys.readouterr().err
