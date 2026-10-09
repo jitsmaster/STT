@@ -9,6 +9,7 @@ from stt.pipeline import Bus, Pipeline
 
 LOUD = np.full(1600, 0.2, dtype="float32")
 QUIET = np.zeros(1600, dtype="float32")
+WAKE = np.full(1600, 0.9, dtype="float32")
 
 
 def build(command_replies=("status",), dictation_replies=("status please",), wake=None):
