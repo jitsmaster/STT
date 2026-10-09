@@ -30,3 +30,13 @@ Source: https://k2-fsa.github.io/sherpa/onnx/kws/pretrained_models/index.html
   Result: `m ǎ n óng @码农`. (Set `PYTHONIOENCODING=utf-8` when redirecting.)
 - API (sherpa-onnx 1.13.8): `KeywordSpotter(tokens, encoder, decoder, joiner, keywords_file, num_threads=2, sample_rate=16000, feature_dim=80, max_active_paths=4, keywords_score=1.0, keywords_threshold=0.25, num_trailing_blanks=1, provider="cpu", device=0)`, matching `make_spotter`.
 - Smoke test done with the archive's own `test_wavs` and `keywords.txt` (every clip triggered); the 码农 clips come from the recorded sample set (Task 10).
+
+## Daemon
+
+A background process that listens (hotkey, optionally the 码农 wake word), endpoints speech with Silero VAD, transcribes, and serves the result over an authenticated loopback HTTP/WebSocket API. The contract is in [API.md](API.md).
+
+1. Copy `config.example.toml` to `config.toml` (gitignored) and edit it. Pick the microphone: `.\.venv\Scripts\python -m stt devices` lists the inputs; set `device = "<index or name fragment>"`.
+2. Needed in `models/`: `silero_vad.onnx` (https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx; without it the daemon falls back to a loudness gate and warns), the SenseVoice folder if used, and for the wake word the `kws` folder (see above).
+3. Run: `.\scripts\run-stt.ps1` (or `.\.venv\Scripts\python -m stt serve --config config.toml [--port N]`).
+4. Watch the events of a running daemon: `.\.venv\Scripts\python scripts\watch_events.py [port]`.
+5. Default hotkey `ctrl+alt+v`: press to listen, press again to end the utterance. The default port is 8890; the secret is created in `<state_dir>\stt-secret`.
