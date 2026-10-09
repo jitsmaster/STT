@@ -7,6 +7,7 @@ from pathlib import Path
 
 from stt.audio import is_silent, load_wav
 from stt.engines.base import Hints, Transcript
+from stt.engines.factory import make_engine
 
 from .intents import match_intent
 from .prompts import load_manifest
@@ -96,19 +97,6 @@ def render_markdown(summaries: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def make_engine(spec: str):
-    kind, _, arg = spec.partition(":")
-    if kind == "faster-whisper":
-        from stt.engines.whisper import FasterWhisperEngine
-
-        return FasterWhisperEngine(arg or "large-v3")
-    if kind == "sensevoice":
-        from stt.engines.sensevoice import SenseVoiceEngine
-
-        return SenseVoiceEngine(arg or "models/sensevoice")
-    raise SystemExit("unknown engine " + repr(spec))
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--samples", default="samples")
@@ -121,7 +109,10 @@ def main(argv=None):
     summaries, all_rows = {}, []
     suffix = (" +glossary" if args.glossary else "") + (" +oracle-lang" if args.oracle_lang else "")
     for spec in args.engines.split(","):
-        engine = make_engine(spec)
+        try:
+            engine = make_engine(spec)
+        except ValueError as exc:
+            raise SystemExit(str(exc))
         rows = run_bench(items, args.samples, engine, GLOSSARY if args.glossary else [], args.oracle_lang)
         summaries[engine.name + suffix] = summarize(rows)
         all_rows += [asdict(r) for r in rows]
