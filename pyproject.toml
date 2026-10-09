@@ -11,6 +11,7 @@ dependencies = ["numpy", "soundfile", "sounddevice", "faster-whisper", "sherpa-o
 
 [project.optional-dependencies]
 dev = ["pytest"]
+kws-tools = ["sentencepiece", "pypinyin"]  # only for `sherpa-onnx-cli text2token` (regenerating keywords.txt)
 
 [tool.setuptools.packages.find]
 where = ["src"]
