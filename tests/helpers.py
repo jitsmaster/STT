@@ -1,3 +1,4 @@
+import contextlib
 import asyncio
 
 import numpy as np
@@ -29,3 +30,9 @@ def speak_cycle(pipe):
     pipe.trigger("hotkey")
     for frame in (LOUD, LOUD, QUIET, QUIET):
         pipe.feed(frame)
+
+
+async def stop_task(task):
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await task

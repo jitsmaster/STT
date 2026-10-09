@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from stt.engines.base import Hints, Transcript
 
@@ -59,3 +61,26 @@ class ScriptSpotter:
 
     def reset_stream(self, stream):
         self.resets += 1
+
+
+class FakeSource:
+    """A MicSource stand-in: frames are whatever the test pushes into `frames`; start() can be made to fail."""
+
+    def __init__(self, fail=False):
+        self.started, self.frames, self.starts, self.stops, self.fail = False, [], 0, 0, fail
+
+    def start(self):
+        if self.fail:
+            raise OSError("device busy")
+        self.started = True
+        self.starts += 1
+
+    def stop(self):
+        self.started = False
+        self.stops += 1
+
+    def next_frame(self, timeout=0.1):
+        if self.frames:
+            return self.frames.pop(0)
+        time.sleep(min(timeout, 0.01))
+        return None
