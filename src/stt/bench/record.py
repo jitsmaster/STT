@@ -32,7 +32,10 @@ def check_opens(device):
         frames[0] += n
 
     with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device, callback=callback):
-        time.sleep(0.6)
+        for _ in range(20):  # a Bluetooth mic can take a second to start streaming
+            if frames[0]:
+                break
+            time.sleep(0.1)
     if frames[0] == 0:
         raise sd.PortAudioError("the device opened but delivered no audio (headset not streaming: reconnect it, check the "
                                 "Windows sound input level, close apps using the mic)")
