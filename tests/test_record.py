@@ -50,3 +50,53 @@ def test_a_device_that_cannot_be_opened_is_reported_before_any_prompt(monkeypatc
     assert record.main(["--out", str(tmp_path), "--device", "soundcore"]) == 1
     err = capsys.readouterr().err
     assert "cannot be opened" in err and "Invalid device" in err and "--list-devices" in err
+
+
+class FakeStream:
+    """Stands in for sd.InputStream; delivers `frames` sample frames to the callback on enter."""
+
+    def __init__(self, frames):
+        self.frames = frames
+
+    def __call__(self, **kwargs):
+        self.callback = kwargs.get("callback")
+        return self
+
+    def __enter__(self):
+        if self.frames and self.callback:
+            self.callback(__import__("numpy").zeros((self.frames, 1), dtype="float32"), self.frames, None, None)
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def test_a_device_that_opens_but_delivers_no_audio_is_refused(monkeypatch):
+    monkeypatch.setattr(record.sd, "InputStream", FakeStream(0))
+    monkeypatch.setattr(record.time, "sleep", lambda s: None)
+    try:
+        record.check_opens(1)
+    except record.sd.PortAudioError as exc:
+        assert "no audio" in str(exc)
+    else:
+        raise AssertionError("a silent stream was accepted")
+
+
+def test_a_device_that_delivers_audio_passes_the_check(monkeypatch):
+    monkeypatch.setattr(record.sd, "InputStream", FakeStream(800))
+    monkeypatch.setattr(record.time, "sleep", lambda s: None)
+    record.check_opens(1)
+
+
+def test_a_clip_with_no_audio_is_not_saved_and_is_asked_again(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(record.sd, "query_devices", lambda: DEVICES)
+    np = __import__("numpy")
+    takes = iter([np.zeros(0, dtype="float32"), np.zeros(1600, dtype="float32")])
+    monkeypatch.setattr(record, "record_until_enter", lambda device: next(takes))
+    monkeypatch.setattr(record, "record_seconds", lambda seconds, device: np.zeros(1600, dtype="float32"))
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
+    monkeypatch.setattr(record, "missing_samples", lambda items, out: items[:1])
+    monkeypatch.setattr(record, "check_opens", lambda device: None)
+    assert record.main(["--out", str(tmp_path), "--device", "soundcore"]) == 0
+    assert "no audio was captured" in capsys.readouterr().out
+    assert len(list(tmp_path.glob("*.wav"))) == 1

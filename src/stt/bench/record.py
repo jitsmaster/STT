@@ -1,5 +1,6 @@
 import argparse
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -23,9 +24,18 @@ def record_until_enter(device):
 
 
 def check_opens(device):
-    """Open and close the input once, so a device that vanished or is not usable fails before the first prompt."""
-    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device):
-        pass
+    """Open the input for a moment, so a device that vanished, cannot be opened or opens but delivers no audio (a Bluetooth
+    headset that is not streaming) fails before the first prompt instead of saving empty clips."""
+    frames = [0]
+
+    def callback(indata, n, t, status):
+        frames[0] += n
+
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device, callback=callback):
+        time.sleep(0.6)
+    if frames[0] == 0:
+        raise sd.PortAudioError("the device opened but delivered no audio (headset not streaming: reconnect it, check the "
+                                "Windows sound input level, close apps using the mic)")
 
 
 def record_seconds(seconds, device):
@@ -68,8 +78,12 @@ def main(argv=None):
             input(f"  Press Enter, then do this for {item['seconds']} s ")
             audio = record_seconds(item["seconds"], device)
         else:
-            input("  Press Enter to start ")
-            audio = record_until_enter(device)
+            while True:
+                input("  Press Enter to start ")
+                audio = record_until_enter(device)
+                if len(audio):
+                    break
+                print("  no audio was captured (the device delivered nothing); try again, or Ctrl+C and check the headset")
         save_wav(out / (item["id"] + ".wav"), audio)
     print("done")
     return 0
