@@ -34,5 +34,19 @@ def test_a_device_name_fragment_is_resolved_to_the_input_index(monkeypatch, tmp_
     monkeypatch.setattr(record, "record_seconds", lambda seconds, device: seen.append(device) or __import__("numpy").zeros(1600, dtype="float32"))
     monkeypatch.setattr("builtins.input", lambda prompt="": "")
     monkeypatch.setattr(record, "missing_samples", lambda items, out: items[:1])
+    monkeypatch.setattr(record, "check_opens", lambda device: None)
     assert record.main(["--out", str(tmp_path), "--device", "SoundCore"]) == 0
     assert seen == [1]
+
+
+def test_a_device_that_cannot_be_opened_is_reported_before_any_prompt(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(record.sd, "query_devices", lambda: DEVICES)
+
+    def boom(device):
+        raise record.sd.PortAudioError("Invalid device [PaErrorCode -9996]")
+
+    monkeypatch.setattr(record, "check_opens", boom)
+    monkeypatch.setattr("builtins.input", lambda prompt="": (_ for _ in ()).throw(AssertionError("prompted")))
+    assert record.main(["--out", str(tmp_path), "--device", "soundcore"]) == 1
+    err = capsys.readouterr().err
+    assert "cannot be opened" in err and "Invalid device" in err and "--list-devices" in err

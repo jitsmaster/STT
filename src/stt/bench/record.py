@@ -22,6 +22,12 @@ def record_until_enter(device):
     return np.concatenate(frames)[:, 0] if frames else np.zeros(0, dtype="float32")
 
 
+def check_opens(device):
+    """Open and close the input once, so a device that vanished or is not usable fails before the first prompt."""
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device):
+        pass
+
+
 def record_seconds(seconds, device):
     audio = sd.rec(int(seconds * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device)
     sd.wait()
@@ -43,6 +49,12 @@ def main(argv=None):
         device = resolve_device(sd.query_devices(), args.device)
     except ValueError as exc:  # an output device, an index that moved, or an unknown name
         print("record: " + str(exc), file=sys.stderr)
+        return 1
+    try:
+        check_opens(device)
+    except sd.PortAudioError as exc:
+        print(f"record: input device {device} cannot be opened: {exc}\nrun with --list-devices and pick another "
+              "(Bluetooth entries named Hands-Free under WDM-KS cannot be used; reconnect the headset)", file=sys.stderr)
         return 1
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
