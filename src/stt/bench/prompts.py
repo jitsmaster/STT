@@ -32,6 +32,14 @@ MIXED = [
     ("告诉第三个 session 继续", ["session"]),
     ("这个 pull request 的 review comment 总结一下", ["pull request", "review comment"]),
 ]
+# Sessions are addressed by name, not number: the name is the term that must survive (STT is the session name here).
+SESSION_NAME = "STT"
+TARGETS = [
+    ("stop STT", "stop", ["STT"]), ("open STT", "open", ["STT"]), ("status of STT", "status", ["STT"]),
+    ("read STT", "read", ["STT"]), ("STT: rebase onto develop", None, ["STT", "rebase", "develop"]),
+    ("STT: run the tests and tell me the result", None, ["STT"]),
+    ("停止 STT", "stop", ["STT"]), ("打开 STT", "open", ["STT"]), ("STT 继续跑测试", None, ["STT"]),
+]
 WAKE_WORD = "码农"
 WAKE_REPEATS = 20
 AMBIENT = [
@@ -57,6 +65,8 @@ def build_manifest() -> list[dict]:
         items.append(_item(f"dict-{n:02d}", "dictation", "en", text, terms=terms))
     for n, (text, terms) in enumerate(MIXED, 1):
         items.append(_item(f"mix-{n:02d}", "mixed", "mixed", text, terms=terms))
+    for n, (text, intent, terms) in enumerate(TARGETS, 1):
+        items.append(_item(f"tgt-{n:02d}", "target", "mixed" if any("\u4e00" <= c <= "\u9fff" for c in text) else "en", text, intent, terms))
     for n in range(1, WAKE_REPEATS + 1):
         items.append(_item(f"wake-{n:02d}", "wake", "zh", WAKE_WORD))
     for n, what in enumerate(AMBIENT, 1):

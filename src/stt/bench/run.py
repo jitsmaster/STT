@@ -13,7 +13,7 @@ from .intents import match_intent
 from .prompts import load_manifest
 from .scoring import number_ok, term_hits, token_error_rate
 
-SCORED_KINDS = ("command", "dictation", "mixed")
+SCORED_KINDS = ("command", "dictation", "mixed", "target")
 GLOSSARY = ["worktree", "PR", "dsh-plugins", "sessionController", "Kokoro", "pnpm", "rebase", "develop", "faster-whisper"]
 
 

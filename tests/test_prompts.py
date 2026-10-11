@@ -28,3 +28,12 @@ def test_manifest_roundtrip_and_missing_samples(tmp_path):
     (tmp_path / (items[0]["id"] + ".wav")).write_bytes(b"x")
     todo = missing_samples(items, tmp_path)
     assert items[0] not in todo and len(todo) == len(items) - 1
+
+
+def test_session_name_targets_are_scored_for_the_name_and_the_intent():
+    targets = [i for i in build_manifest() if i["kind"] == "target"]
+    assert len(targets) == 9 and all("STT" in i["terms"] for i in targets)
+    for item in targets:
+        if item["intent"]:
+            assert match_intent(item["text"]) == item["intent"], item["id"]
+    assert any(i["intent"] is None and "rebase" in i["terms"] for i in targets)  # a "name: task" prompt
