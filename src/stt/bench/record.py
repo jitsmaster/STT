@@ -6,6 +6,7 @@ import numpy as np
 import sounddevice as sd
 
 from stt.audio import SAMPLE_RATE, save_wav
+from stt.mic import resolve_device
 
 from .prompts import build_manifest, missing_samples, save_manifest
 
@@ -30,7 +31,7 @@ def record_seconds(seconds, device):
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Record the bake-off sample set (resumable).")
     ap.add_argument("--out", default="samples")
-    ap.add_argument("--device", type=int, default=None, help="input device index (see --list-devices)")
+    ap.add_argument("--device", default=None, help="input device index or a name fragment such as soundcore (see --list-devices)")
     ap.add_argument("--list-devices", action="store_true")
     args = ap.parse_args(argv)
     # Device names and the Chinese prompts are not encodable in the cp1252 of a redirected stdout.
@@ -38,6 +39,11 @@ def main(argv=None):
     if args.list_devices:
         print(sd.query_devices())
         return 0
+    try:
+        device = resolve_device(sd.query_devices(), args.device)
+    except ValueError as exc:  # an output device, an index that moved, or an unknown name
+        print("record: " + str(exc), file=sys.stderr)
+        return 1
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     items = build_manifest()
@@ -48,10 +54,10 @@ def main(argv=None):
         print(f"\n[{item['id']}] ({item['kind']}) say: {item['text']}")
         if item["kind"] == "ambient":
             input(f"  Press Enter, then do this for {item['seconds']} s ")
-            audio = record_seconds(item["seconds"], args.device)
+            audio = record_seconds(item["seconds"], device)
         else:
             input("  Press Enter to start ")
-            audio = record_until_enter(args.device)
+            audio = record_until_enter(device)
         save_wav(out / (item["id"] + ".wav"), audio)
     print("done")
     return 0
