@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import sounddevice as sd
 
-from stt.audio import SAMPLE_RATE, save_wav
+from stt.audio import SAMPLE_RATE, SILENCE_RMS, rms, save_wav
 from stt.mic import resolve_device
 
 from .prompts import build_manifest, missing_samples, save_manifest
@@ -38,6 +38,25 @@ def check_opens(device):
                                 "Windows sound input level, close apps using the mic)")
 
 
+MIN_SECONDS = 0.3
+
+
+def clip_problem(audio):
+    """Why a take cannot be kept, or None when it is usable (length and level of the raw audio, before saving)."""
+    if not len(audio):
+        return "no audio was captured (the device delivered nothing)"
+    seconds = len(audio) / SAMPLE_RATE
+    if seconds < MIN_SECONDS:
+        return f"too short ({seconds:.1f} s; Enter was pressed too soon)"
+    if rms(audio) < SILENCE_RMS:
+        return "too quiet (nothing heard; is this the headset mic, and is it streaming?)"
+    return None
+
+
+def level_db(audio):
+    return 20 * np.log10(max(rms(audio), 1e-9))
+
+
 def record_seconds(seconds, device):
     audio = sd.rec(int(seconds * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device)
     sd.wait()
@@ -66,6 +85,8 @@ def main(argv=None):
         print(f"record: input device {device} cannot be opened: {exc}\nrun with --list-devices and pick another "
               "(Bluetooth entries named Hands-Free under WDM-KS cannot be used; reconnect the headset)", file=sys.stderr)
         return 1
+    device_name = sd.query_devices()[device]["name"]
+    print(f"Recording from input device {device}: {device_name}")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     items = build_manifest()
@@ -81,9 +102,11 @@ def main(argv=None):
             while True:
                 input("  Press Enter to start ")
                 audio = record_until_enter(device)
-                if len(audio):
+                problem = clip_problem(audio)
+                if problem is None:
+                    print(f"  ok: {len(audio) / SAMPLE_RATE:.1f} s, level {level_db(audio):.0f} dBFS")
                     break
-                print("  no audio was captured (the device delivered nothing); try again, or Ctrl+C and check the headset")
+                print(f"  NOT SAVED, {problem}. Record it again (Ctrl+C to stop and check {device_name}).")
         save_wav(out / (item["id"] + ".wav"), audio)
     print("done")
     return 0
