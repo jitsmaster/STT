@@ -1,0 +1,715 @@
+[
+  {
+    "id": "cmd-en-01",
+    "kind": "command",
+    "lang": "en",
+    "text": "status",
+    "intent": "status",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-02",
+    "kind": "command",
+    "lang": "en",
+    "text": "what's waiting",
+    "intent": "status",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-03",
+    "kind": "command",
+    "lang": "en",
+    "text": "mute",
+    "intent": "mute",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-04",
+    "kind": "command",
+    "lang": "en",
+    "text": "repeat",
+    "intent": "repeat",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-05",
+    "kind": "command",
+    "lang": "en",
+    "text": "repeat question",
+    "intent": "repeat_question",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-06",
+    "kind": "command",
+    "lang": "en",
+    "text": "cancel",
+    "intent": "cancel",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-07",
+    "kind": "command",
+    "lang": "en",
+    "text": "yes",
+    "intent": "yes",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-08",
+    "kind": "command",
+    "lang": "en",
+    "text": "approve",
+    "intent": "approve",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-09",
+    "kind": "command",
+    "lang": "en",
+    "text": "deny",
+    "intent": "deny",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-10",
+    "kind": "command",
+    "lang": "en",
+    "text": "option two",
+    "intent": "option:2",
+    "terms": [],
+    "number": 2
+  },
+  {
+    "id": "cmd-en-11",
+    "kind": "command",
+    "lang": "en",
+    "text": "option three",
+    "intent": "option:3",
+    "terms": [],
+    "number": 3
+  },
+  {
+    "id": "cmd-en-12",
+    "kind": "command",
+    "lang": "en",
+    "text": "stop three",
+    "intent": "stop:3",
+    "terms": [],
+    "number": 3
+  },
+  {
+    "id": "cmd-en-13",
+    "kind": "command",
+    "lang": "en",
+    "text": "open five",
+    "intent": "open:5",
+    "terms": [],
+    "number": 5
+  },
+  {
+    "id": "cmd-en-14",
+    "kind": "command",
+    "lang": "en",
+    "text": "new in dsh plugins",
+    "intent": "new",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-en-15",
+    "kind": "command",
+    "lang": "en",
+    "text": "read",
+    "intent": "read",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-01",
+    "kind": "command",
+    "lang": "zh",
+    "text": "状态",
+    "intent": "status",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-02",
+    "kind": "command",
+    "lang": "zh",
+    "text": "静音",
+    "intent": "mute",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-03",
+    "kind": "command",
+    "lang": "zh",
+    "text": "重复",
+    "intent": "repeat",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-04",
+    "kind": "command",
+    "lang": "zh",
+    "text": "取消",
+    "intent": "cancel",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-05",
+    "kind": "command",
+    "lang": "zh",
+    "text": "通过",
+    "intent": "approve",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-06",
+    "kind": "command",
+    "lang": "zh",
+    "text": "拒绝",
+    "intent": "deny",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "cmd-zh-07",
+    "kind": "command",
+    "lang": "zh",
+    "text": "选二",
+    "intent": "option:2",
+    "terms": [],
+    "number": 2
+  },
+  {
+    "id": "cmd-zh-08",
+    "kind": "command",
+    "lang": "zh",
+    "text": "选三",
+    "intent": "option:3",
+    "terms": [],
+    "number": 3
+  },
+  {
+    "id": "cmd-zh-09",
+    "kind": "command",
+    "lang": "zh",
+    "text": "停止三号",
+    "intent": "stop:3",
+    "terms": [],
+    "number": 3
+  },
+  {
+    "id": "cmd-zh-10",
+    "kind": "command",
+    "lang": "zh",
+    "text": "新建会话",
+    "intent": "new",
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "dict-01",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Rebase the worktree onto develop and run the tests",
+    "intent": null,
+    "terms": [
+      "worktree",
+      "develop"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-02",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Open pull request PR 6512 against the develop branch",
+    "intent": null,
+    "terms": [
+      "PR",
+      "6512",
+      "develop"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-03",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Add a failing test for the session controller before changing the plugin",
+    "intent": null,
+    "terms": [
+      "session controller"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-04",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Check whether dsh-plugins hooks still speak the full response",
+    "intent": null,
+    "terms": [
+      "dsh-plugins",
+      "hooks"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-05",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Run pnpm install in the worktree and report any peer dependency warnings",
+    "intent": null,
+    "terms": [
+      "pnpm",
+      "worktree"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-06",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Why does the Kokoro server restart when the headset microphone opens",
+    "intent": null,
+    "terms": [
+      "Kokoro"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-07",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Merge the feature branch and delete the local worktree afterwards",
+    "intent": null,
+    "terms": [
+      "worktree"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-08",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Summarize the review comments on PR 6512 in three bullet points",
+    "intent": null,
+    "terms": [
+      "PR",
+      "6512"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-09",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Use faster-whisper large v3 with int8 on the CPU",
+    "intent": null,
+    "terms": [
+      "faster-whisper",
+      "int8"
+    ],
+    "number": null
+  },
+  {
+    "id": "dict-10",
+    "kind": "dictation",
+    "lang": "en",
+    "text": "Update the README and commit with a conventional message",
+    "intent": null,
+    "terms": [
+      "README"
+    ],
+    "number": null
+  },
+  {
+    "id": "mix-01",
+    "kind": "mixed",
+    "lang": "mixed",
+    "text": "把 PR 6512 的 session 打开",
+    "intent": null,
+    "terms": [
+      "PR",
+      "6512",
+      "session"
+    ],
+    "number": null
+  },
+  {
+    "id": "mix-02",
+    "kind": "mixed",
+    "lang": "mixed",
+    "text": "给 dsh-plugins 新建一个 worktree",
+    "intent": null,
+    "terms": [
+      "dsh-plugins",
+      "worktree"
+    ],
+    "number": null
+  },
+  {
+    "id": "mix-03",
+    "kind": "mixed",
+    "lang": "mixed",
+    "text": "帮我 rebase 到 develop 然后跑测试",
+    "intent": null,
+    "terms": [
+      "rebase",
+      "develop"
+    ],
+    "number": null
+  },
+  {
+    "id": "mix-04",
+    "kind": "mixed",
+    "lang": "mixed",
+    "text": "告诉第三个 session 继续",
+    "intent": null,
+    "terms": [
+      "session"
+    ],
+    "number": null
+  },
+  {
+    "id": "mix-05",
+    "kind": "mixed",
+    "lang": "mixed",
+    "text": "这个 pull request 的 review comment 总结一下",
+    "intent": null,
+    "terms": [
+      "pull request",
+      "review comment"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-01",
+    "kind": "target",
+    "lang": "en",
+    "text": "stop STT",
+    "intent": "stop",
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-02",
+    "kind": "target",
+    "lang": "en",
+    "text": "open STT",
+    "intent": "open",
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-03",
+    "kind": "target",
+    "lang": "en",
+    "text": "status of STT",
+    "intent": "status",
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-04",
+    "kind": "target",
+    "lang": "en",
+    "text": "read STT",
+    "intent": "read",
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-05",
+    "kind": "target",
+    "lang": "en",
+    "text": "STT: rebase onto develop",
+    "intent": null,
+    "terms": [
+      "STT",
+      "rebase",
+      "develop"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-06",
+    "kind": "target",
+    "lang": "en",
+    "text": "STT: run the tests and tell me the result",
+    "intent": null,
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-07",
+    "kind": "target",
+    "lang": "mixed",
+    "text": "停止 STT",
+    "intent": "stop",
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-08",
+    "kind": "target",
+    "lang": "mixed",
+    "text": "打开 STT",
+    "intent": "open",
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "tgt-09",
+    "kind": "target",
+    "lang": "mixed",
+    "text": "STT 继续跑测试",
+    "intent": null,
+    "terms": [
+      "STT"
+    ],
+    "number": null
+  },
+  {
+    "id": "wake-01",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-02",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-03",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-04",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-05",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-06",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-07",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-08",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-09",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-10",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-11",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-12",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-13",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-14",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-15",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-16",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-17",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-18",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-19",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "wake-20",
+    "kind": "wake",
+    "lang": "zh",
+    "text": "码农",
+    "intent": null,
+    "terms": [],
+    "number": null
+  },
+  {
+    "id": "ambient-01",
+    "kind": "ambient",
+    "lang": "any",
+    "text": "a normal phone or video call (talk to someone)",
+    "intent": null,
+    "terms": [],
+    "number": null,
+    "seconds": 60
+  },
+  {
+    "id": "ambient-02",
+    "kind": "ambient",
+    "lang": "any",
+    "text": "music or a video playing",
+    "intent": null,
+    "terms": [],
+    "number": null,
+    "seconds": 60
+  },
+  {
+    "id": "ambient-03",
+    "kind": "ambient",
+    "lang": "any",
+    "text": "you talking to yourself while working",
+    "intent": null,
+    "terms": [],
+    "number": null,
+    "seconds": 60
+  }
+]
