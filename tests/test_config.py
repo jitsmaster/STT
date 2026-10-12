@@ -68,4 +68,4 @@ def test_relative_model_paths_resolve_against_the_config_file_not_the_working_di
     assert cfg.vad_model == str(tmp_path / "models" / "v.onnx")
     assert cfg.wake_model_dir == str(tmp_path / "k")
     assert cfg.command_engine == "sensevoice:" + str(tmp_path / "models" / "sv")
-    assert load_config(None).command_engine == "faster-whisper:large-v3"
+    assert load_config(None).command_engine == "faster-whisper:small"

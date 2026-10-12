@@ -3,8 +3,8 @@
 # state_dir = "C:/Users/<you>/.dsh/tts"   # default: DSH_TTS_STATE_DIR, else DSH_HOME/tts, else ~/.dsh/tts
 device = "soundcore"          # index or name fragment; run "python -m stt devices"; omit for the system default
 hotkey = "ctrl+alt+v"         # must not be ctrl+alt+m (the TTS-stop hotkey)
-command_engine = "faster-whisper:large-v3"     # or "sensevoice:models/sensevoice"; set from the Task 10 decision
-# dictation_engine = "faster-whisper:large-v3" # omit to use the command engine for both
+command_engine = "faster-whisper:small"     # Task 10 decision; alternatives: "faster-whisper:medium" (slower, a little better on commands), "sensevoice:models/sensevoice" (0.1 s but weaker)
+# dictation_engine = "faster-whisper:medium"  # omit to use the command engine for both
 wake_enabled = false          # 码农 wake word: leave off until Task 10 says it ships
 # wake_model_dir = "models/kws"
 # wake_keywords = "keywords.txt"

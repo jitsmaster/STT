@@ -22,7 +22,7 @@ class Config:
     state_dir: Path = field(default_factory=default_state_dir)
     device: str | int | None = None
     hotkey: str = "ctrl+alt+v"
-    command_engine: str = "faster-whisper:large-v3"
+    command_engine: str = "faster-whisper:small"  # the Task 10 decision: CPU int8, about 2 s per clip, 9% token error on slow headset dictation
     dictation_engine: str | None = None
     wake_enabled: bool = False
     wake_model_dir: str = "models/kws"
