@@ -19,7 +19,7 @@ from .server import create_app
 from .wake import WakeWatcher
 
 log = logging.getLogger("stt")
-EARCONS = {"start": [(880, 70)], "end": [(660, 70)], "cancel": [(440, 90), (330, 90)]}
+EARCON_TONES = {"start": [(880, 70)], "end": [(660, 70)], "cancel": [(440, 90), (330, 90)]}
 
 
 def touch_stop_flag(state_dir) -> None:
@@ -28,13 +28,38 @@ def touch_stop_flag(state_dir) -> None:
     (folder / "tts-stop.flag").touch()
 
 
+EARCON_LEAD_S = 0.4  # near-silence that wakes a Bluetooth headset's output before the tone
+EARCON_RATE = 16_000
+
+
+def earcon_wav(kind) -> bytes:
+    """The earcon as an in-memory WAV: a quiet lead-in (a 1-LSB-level signal, so the sink does not idle off) then the tones."""
+    import io
+    import wave
+
+    import numpy as np
+
+    parts = [np.where(np.arange(int(EARCON_LEAD_S * EARCON_RATE)) % 2 == 0, 8, -8).astype("<i2")]
+    for freq, ms in EARCON_TONES.get(kind, ()):
+        t = np.arange(int(EARCON_RATE * max(ms, 120) / 1000)) / EARCON_RATE
+        fade = np.minimum(1.0, np.minimum(t, t[-1] - t) / 0.01)
+        parts.append((0.5 * 32767 * fade * np.sin(2 * np.pi * freq * t)).astype("<i2"))
+        parts.append(np.zeros(int(EARCON_RATE * 0.04), dtype="<i2"))
+    out = io.BytesIO()
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(EARCON_RATE)
+        w.writeframes(np.concatenate(parts).tobytes())
+    return out.getvalue()
+
+
 def beep(kind) -> None:
     def play():
         try:
             import winsound
 
-            for freq, ms in EARCONS.get(kind, ()):
-                winsound.Beep(freq, ms)
+            winsound.PlaySound(earcon_wav(kind), winsound.SND_MEMORY | winsound.SND_NODEFAULT)
         except Exception:
             log.debug("earcon %s failed", kind, exc_info=True)
 
@@ -43,6 +68,7 @@ def beep(kind) -> None:
 
 def make_hotkey_handler(pipeline):
     def on_press():
+        log.info("hotkey pressed, state %s", pipeline.state)
         if pipeline.state == "listening":
             pipeline.finish()
         else:

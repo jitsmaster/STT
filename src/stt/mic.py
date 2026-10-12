@@ -116,7 +116,8 @@ async def capture_loop(pipeline, source, wake_enabled, *, poll_s=0.02, retry_s=1
                         last_error = None
                     except Exception as exc:
                         message = "microphone unavailable: " + str(exc)
-                        if message != last_error:
+                        log.warning(message)
+                        if message != last_error or listening:  # a user who just asked to listen must always be told why it ended
                             last_error = message
                             pipeline.bus.publish({"type": "error", "message": message, "context": pipeline.context})
                         pipeline.cancel()

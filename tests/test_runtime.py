@@ -75,3 +75,23 @@ def test_a_bad_config_is_reported_on_stderr_with_exit_code_1(tmp_path, capsys):
 def test_a_config_path_given_on_the_command_line_must_exist(tmp_path, capsys):
     assert main(["serve", "--config", str(tmp_path / "missing.toml")]) == 1
     assert "not found" in capsys.readouterr().err
+
+
+def test_an_earcon_is_a_wav_with_a_quiet_lead_in_before_the_tone():
+    """A Bluetooth headset wakes its output a moment after audio starts, which swallows a 70 ms beep, so the tone follows
+    a lead-in of near-silence."""
+    import io
+    import wave
+
+    import numpy as np
+
+    from stt.runtime import EARCON_LEAD_S, earcon_wav
+
+    with wave.open(io.BytesIO(earcon_wav("start")), "rb") as w:
+        rate, frames = w.getframerate(), w.readframes(w.getnframes())
+    samples = np.frombuffer(frames, dtype="<i2").astype("float32") / 32768
+    lead = samples[: int(EARCON_LEAD_S * rate)]
+    tone = samples[int(EARCON_LEAD_S * rate):]
+    assert np.abs(lead).max() < 0.002 and np.abs(tone).max() > 0.2
+    assert len(tone) / rate >= 0.1
+    assert len(earcon_wav("cancel")) > len(earcon_wav("start"))  # two falling beeps are longer than one
