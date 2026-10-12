@@ -129,3 +129,19 @@ def test_a_good_clip_reports_its_length_and_level(monkeypatch, tmp_path, capsys)
     assert run_with_takes(monkeypatch, tmp_path, [tone(1.0)]) == 0
     out = capsys.readouterr().out
     assert "ok" in out and "1.0 s" in out and "dBFS" in out
+
+
+def test_speak_now_is_shown_only_once_audio_is_flowing(monkeypatch):
+    monkeypatch.setattr(record.sd, "InputStream", FakeStream(800))
+    prompts = []
+    monkeypatch.setattr("builtins.input", lambda prompt="": prompts.append(prompt) or "")
+    audio = record.record_until_enter(1)
+    assert len(audio) == 800
+    assert len(prompts) == 1 and "speak now" in prompts[0]
+
+
+def test_a_mic_that_never_streams_returns_nothing_without_telling_you_to_speak(monkeypatch, capsys):
+    monkeypatch.setattr(record.sd, "InputStream", FakeStream(0))
+    monkeypatch.setattr(record, "START_TIMEOUT", 0.05)
+    monkeypatch.setattr("builtins.input", lambda prompt="": (_ for _ in ()).throw(AssertionError("asked to speak")))
+    assert len(record.record_until_enter(1)) == 0

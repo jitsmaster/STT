@@ -1,5 +1,6 @@
 import argparse
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -12,14 +13,22 @@ from stt.mic import resolve_device
 from .prompts import build_manifest, missing_samples, save_manifest
 
 
+START_TIMEOUT = 3.0
+
+
 def record_until_enter(device):
+    """Record until Enter. 'speak now' is only shown once audio is flowing: a Bluetooth mic takes about half a second
+    to start streaming and the words said before that are lost."""
     frames = []
+    flowing = threading.Event()
 
     def callback(indata, n, t, status):
         frames.append(indata.copy())
+        flowing.set()
 
     with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", device=device, callback=callback):
-        input("  recording... press Enter to stop ")
+        if flowing.wait(START_TIMEOUT):
+            input("  recording... speak now, press Enter to stop ")
     return np.concatenate(frames)[:, 0] if frames else np.zeros(0, dtype="float32")
 
 
