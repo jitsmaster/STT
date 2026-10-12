@@ -19,7 +19,7 @@ from .server import create_app
 from .wake import WakeWatcher
 
 log = logging.getLogger("stt")
-EARCON_TONES = {"start": [(880, 70)], "end": [(660, 70)], "cancel": [(440, 90), (330, 90)]}
+EARCON_TONES = {"start": [(1200, 150)], "end": [(500, 150)], "cancel": [(440, 150), (330, 150)]}
 
 
 def touch_stop_flag(state_dir) -> None:

@@ -95,3 +95,21 @@ def test_an_earcon_is_a_wav_with_a_quiet_lead_in_before_the_tone():
     assert np.abs(lead).max() < 0.002 and np.abs(tone).max() > 0.2
     assert len(tone) / rate >= 0.1
     assert len(earcon_wav("cancel")) > len(earcon_wav("start"))  # two falling beeps are longer than one
+
+
+def test_the_start_beep_is_clearly_higher_than_the_stop_beep():
+    import io
+    import wave
+
+    import numpy as np
+
+    from stt.runtime import EARCON_LEAD_S, earcon_wav
+
+    def pitch(kind):
+        with wave.open(io.BytesIO(earcon_wav(kind)), "rb") as w:
+            rate, frames = w.getframerate(), w.readframes(w.getnframes())
+        x = np.frombuffer(frames, dtype="<i2").astype("float32")[int(EARCON_LEAD_S * rate):]
+        return np.fft.rfftfreq(len(x), 1 / rate)[np.argmax(np.abs(np.fft.rfft(x)))]
+
+    assert pitch("start") >= 1000 and pitch("end") <= 600
+    assert pitch("start") > 1.8 * pitch("end")
