@@ -24,11 +24,11 @@ class StubRecognizer:
 
 
 def test_strips_tags_and_reports_the_language():
-    engine = SenseVoiceEngine("unused", recognizer=StubRecognizer())
+    engine = SenseVoiceEngine("unused", recognizer_factory=lambda language: StubRecognizer())
     out = engine.transcribe(np.zeros(16000, dtype="float32"), Hints(language="en", glossary=("x",)))
     assert out.text == "把 PR 6512 打开"
     assert out.language == "zh"
-    assert engine._r.stream.rate == 16000
+    assert engine._recognizers["en"].stream.rate == 16000
 
 
 def test_language_comes_from_result_lang_when_the_text_has_no_tags():
@@ -40,3 +40,28 @@ def test_language_comes_from_result_lang_when_the_text_has_no_tags():
     )
     out = SenseVoiceEngine("unused", recognizer=rec).transcribe(np.zeros(1, dtype="float32"), Hints())
     assert (out.text, out.language) == ("open five", "en")
+
+
+def test_a_language_hint_selects_a_recognizer_built_for_that_language():
+    """sherpa-onnx fixes SenseVoice's language when the recognizer is built (DSH sets it per recording), so the hint picks one."""
+    built = []
+
+    def factory(language):
+        built.append(language)
+        rec = StubRecognizer()
+        rec.language = language
+        return rec
+
+    engine = SenseVoiceEngine("unused", recognizer_factory=factory)
+    engine.transcribe(np.zeros(1600, dtype="float32"), Hints(language="en"))
+    engine.transcribe(np.zeros(1600, dtype="float32"), Hints(language="zh"))
+    engine.transcribe(np.zeros(1600, dtype="float32"), Hints(language="en"))
+    engine.transcribe(np.zeros(1600, dtype="float32"), Hints())
+    assert built == ["en", "zh", "auto"]  # lazily, once each; no hint means auto
+
+
+def test_an_unsupported_hint_falls_back_to_auto():
+    built = []
+    engine = SenseVoiceEngine("unused", recognizer_factory=lambda language: built.append(language) or StubRecognizer())
+    engine.transcribe(np.zeros(1600, dtype="float32"), Hints(language="fr"))
+    assert built == ["auto"]
