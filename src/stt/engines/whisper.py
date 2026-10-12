@@ -5,6 +5,7 @@ from stt.textnorm import to_simplified
 
 from .base import Hints, Transcript
 
+GLOSSARY_MIN_SECONDS = 2.0  # a shorter clip gets no prompt: small answers a one-word command with the prompt itself
 NO_SPEECH_PROB = 0.6  # Whisper's own rule: a segment above both thresholds is silence it made words up for
 MIN_AVG_LOGPROB = -1.0
 
@@ -41,7 +42,7 @@ class FasterWhisperEngine:
         kwargs = {"beam_size": 5, "vad_filter": False, "condition_on_previous_text": False}
         if hints.language:
             kwargs["language"] = hints.language
-        if hints.glossary:
+        if hints.glossary and len(audio) >= GLOSSARY_MIN_SECONDS * 16000:
             kwargs["initial_prompt"] = ", ".join(hints.glossary)
         segments, info = self._model.transcribe(audio, **kwargs)
         kept = [s for s in segments if not _is_hallucination(s)]

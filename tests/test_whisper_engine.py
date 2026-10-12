@@ -26,7 +26,7 @@ def test_joins_segments_and_reports_language_and_probability():
 def test_language_and_glossary_are_forwarded_and_auto_leaves_language_unset():
     stub = StubModel()
     engine = FasterWhisperEngine(model=stub)
-    engine.transcribe(np.zeros(1, dtype="float32"), Hints(language="zh", glossary=("worktree", "PR 6512")))
+    engine.transcribe(np.zeros(32000, dtype="float32"), Hints(language="zh", glossary=("worktree", "PR 6512")))
     assert stub.kwargs["language"] == "zh"
     assert stub.kwargs["initial_prompt"] == "worktree, PR 6512"
     engine.transcribe(np.zeros(1, dtype="float32"), Hints())
@@ -63,3 +63,14 @@ def test_confidence_reflects_the_transcript_not_the_language_guess():
 def test_traditional_chinese_output_is_converted_to_simplified():
     out = FasterWhisperEngine(model=SegModel([seg("\u958b\u653e \u72c0\u614b PR 6512")], "zh")).transcribe(np.zeros(1, dtype="float32"), Hints())
     assert out.text == "\u5f00\u653e \u72b6\u6001 PR 6512"
+
+
+def test_a_short_clip_gets_no_glossary_prompt():
+    """On a one-word command whisper small repeats the whole prompt as its answer ('pnpm, ssh-plugins, ...'), so only audio
+    long enough to carry the terms is biased."""
+    stub = StubModel()
+    engine = FasterWhisperEngine(model=stub)
+    engine.transcribe(np.zeros(16000, dtype="float32"), Hints(language="zh", glossary=("worktree",)))
+    assert "initial_prompt" not in stub.kwargs and stub.kwargs["language"] == "zh"
+    engine.transcribe(np.zeros(40000, dtype="float32"), Hints(glossary=("worktree",)))
+    assert stub.kwargs["initial_prompt"] == "worktree"
