@@ -1,9 +1,18 @@
 import asyncio
+import logging
 import uuid
 from collections import OrderedDict
 
 from .audio import is_silent
 from .engines.base import Hints, Transcript
+
+
+log = logging.getLogger("stt")
+
+
+def _plain(text):
+    """Lowercase letters and digits only, single-spaced: "Over." and "over" are the same word."""
+    return " ".join("".join(c if c.isalnum() or c.isspace() else "" for c in text.lower()).split())
 
 
 class UnknownUtterance(LookupError):
@@ -34,12 +43,14 @@ class Bus:
 
 class Pipeline:
     def __init__(self, core, engines, bus, *, tts_stop=lambda: None, earcon=lambda kind: None,
-                 glossary=(), wake=None, keep=5):
+                 glossary=(), wake=None, keep=5, end_words=()):
         self.core, self.engines, self.bus = core, engines, bus
         self.tts_stop, self.earcon, self.glossary, self.wake, self.keep = tts_stop, earcon, tuple(glossary), wake, keep
         self._utterances = OrderedDict()  # uid -> (audio, context, source)
         self._lock = asyncio.Lock()
         self._tasks = set()
+        self.end_words = {_plain(w) for w in end_words}
+        self._pending_check, self._checking = None, False  # at most one end check runs; only the newest waits
 
     @property
     def state(self):
@@ -70,6 +81,36 @@ class Pipeline:
                 task = asyncio.get_running_loop().create_task(self._transcribe(ev))
                 self._tasks.add(task)
                 task.add_done_callback(self._tasks.discard)
+            elif ev["type"] == "endcheck" and self.end_words:
+                self._pending_check = ev
+                if not self._checking:
+                    self._checking = True
+                    task = asyncio.get_running_loop().create_task(self._end_checks())
+                    self._tasks.add(task)
+                    task.add_done_callback(self._tasks.discard)
+
+    async def _end_checks(self):
+        try:
+            while self._pending_check is not None:
+                ev, self._pending_check = self._pending_check, None
+                try:
+                    await self._end_check(ev)
+                except Exception:
+                    log.exception("end-word check failed")
+        finally:
+            self._checking = False
+
+    async def _end_check(self, ev):
+        """Decode one short burst; when the whole burst is an end word, end the listening window without it."""
+        if is_silent(ev["audio"]):
+            return
+        engine = self.engines["command"]
+        async with self._lock:
+            result = await asyncio.to_thread(engine.transcribe, ev["audio"], Hints(language="en"))
+        hit = _plain(result.text) in self.end_words
+        log.info("end-word check heard %r -> %s", result.text, "yes" if hit else "no")
+        if hit:
+            self._handle(self.core.apply_end_word(ev["burst"]))
 
     def trigger(self, source, context=None, window_s=None) -> bool:
         events = self.core.trigger(source, context, window_s)

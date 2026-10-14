@@ -12,7 +12,7 @@ Shared secret in `<state_dir>\stt-secret`, created on first start (64 hex charac
 |---|---|---|---|
 | GET /health | none | `{"ok": true, "version": "...", "state": "idle"|"listening"}` | 403 |
 | POST /listen | `{"context": {...}?, "window_s": 0 < x <= 60 ?}` | `{"started": true}`; `false` when already listening | 401, 403, 422 |
-| POST /finish | none | `{"finished": bool}`: end the utterance now (what "done" and the second hotkey press do) | 401, 403 |
+| POST /finish | none | `{"finished": bool}`: end the utterance now (what the second hotkey press and the spoken end word do; see "End word" below) | 401, 403 |
 | POST /cancel | none | `{"cancelled": bool}`: stop listening and discard | 401, 403 |
 | POST /transcribe?kind=command|dictation&language=en|zh | raw WAV bytes, at most 10 MB | `{"text", "language", "confidence", "engine", "seconds"}` | 400 not a WAV, 401, 403, 413, 502 engine failed |
 | POST /retranscribe | `{"id", "kind": "dictation"?, "language"?}` | a `transcript` event with `revision: 2` (also published on /events) | 401, 403, 404 unknown or expired id (only the last 5 utterances are kept), 502 |
@@ -39,4 +39,5 @@ A normal utterance is `listening`, `transcribing`, `transcript`, `idle(done)`. N
 - Earcons: a rising beep when listening starts, a lower beep when the utterance ends, two falling beeps on cancel or no speech.
 - Microphone: opened when listening starts and closed afterwards (unless the wake word is on). The first ~0.2 s after the start beep can be lost, so begin speaking after the beep.
 - Hotkey: a press starts listening; a press while listening ends the utterance.
+- End word: saying the end word (default "over", config `end_words`; `[]` turns it off) ends the utterance now, in every listening window (hotkey, wake word, `/listen`). It must be said alone: a short burst of speech (0.15 to 1.5 s) with a pause of `end_lead_gap_s` (0.4 s) before it, or as the first speech of the window, and `end_gap_s` (0.6 s) of silence after it, that the command engine hears as exactly the end word. "pass it over" or "all over" is part of the sentence and never ends anything. The end word is never part of the transcript; saying only the end word gives `idle(no_speech)`. To a client an end-word end looks exactly like a normal utterance end (`listening`, `transcribing`, `transcript`, `idle(done)`). The check runs while you are still in the window, so `transcribing` follows about 0.6 s plus the decode time (about 2 s on CPU) after the word; what the engine heard is logged at INFO ("end-word check heard ...") for tuning.
 - Dictation accuracy first: use `/retranscribe` on the `id` of a prompt or approval text to get the accurate engine's version before reading it back.

@@ -97,13 +97,15 @@ async def run_daemon(config) -> None:
     secret = load_or_create_secret(config.state_dir)
     engines = build_engines(config)
     core = ListenerCore(make_endpointer(config), no_speech_s=config.no_speech_s, silence_end_s=config.silence_end_s,
-                        max_s=config.max_utterance_s, min_speech_s=config.min_speech_s)
+                        max_s=config.max_utterance_s, min_speech_s=config.min_speech_s,
+                        end_check=bool(config.end_words), end_gap_s=config.end_gap_s,
+                        end_lead_gap_s=config.end_lead_gap_s)
     wake = None
     if config.wake_enabled:
         wake = WakeWatcher(make_spotter(config.wake_model_dir, config.wake_keywords, config.wake_threshold, config.wake_score))
     bus = Bus()
     pipeline = Pipeline(core, engines, bus, tts_stop=lambda: touch_stop_flag(config.state_dir), earcon=beep,
-                        glossary=config.glossary, wake=wake)
+                        glossary=config.glossary, wake=wake, end_words=config.end_words)
     info = {"version": __version__, "hotkey": config.hotkey, "wake": wake is not None,
             "engines": {role: engine.name for role, engine in engines.items()}}
     app = create_app(pipeline, bus, secret, info)

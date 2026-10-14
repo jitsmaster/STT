@@ -36,10 +36,14 @@ class Config:
     max_utterance_s: float = 30.0
     min_speech_s: float = 0.25
     glossary: tuple[str, ...] = ()
+    end_words: tuple[str, ...] = ("over",)  # a burst that is exactly one of these ends the window; empty turns it off
+    end_gap_s: float = 0.6  # silence after a burst before it is checked as an end word
+    end_lead_gap_s: float = 0.4  # silence before a burst for it to count as a word of its own
 
 
 _STR_FIELDS = ("host", "hotkey", "command_engine", "wake_model_dir", "wake_keywords", "vad_model")
-_POSITIVE_FIELDS = ("wake_threshold", "wake_score", "no_speech_s", "silence_end_s", "max_utterance_s", "min_speech_s")
+_POSITIVE_FIELDS = ("wake_threshold", "wake_score", "no_speech_s", "silence_end_s", "max_utterance_s", "min_speech_s",
+                    "end_gap_s", "end_lead_gap_s")
 _PATH_FIELDS = ("vad_model", "wake_model_dir", "wake_keywords")
 
 
@@ -71,6 +75,8 @@ def validate(cfg: Config) -> Config:
             raise ValueError(name + " must be a positive number")
     if not isinstance(cfg.glossary, tuple) or not all(isinstance(t, str) for t in cfg.glossary):
         raise ValueError("glossary must be a list of strings")
+    if not isinstance(cfg.end_words, tuple) or not all(isinstance(t, str) and t.strip() for t in cfg.end_words):
+        raise ValueError("end_words must be a list of non-empty strings")
     return cfg
 
 
@@ -105,5 +111,7 @@ def load_config(path=None, *, required: bool = False) -> Config:
         data["state_dir"] = Path(data["state_dir"])
     if isinstance(data.get("glossary"), list):
         data["glossary"] = tuple(data["glossary"])
+    if isinstance(data.get("end_words"), list):
+        data["end_words"] = tuple(data["end_words"])
     cfg = validate(Config(**data))
     return _resolve_paths(cfg, base) if base is not None else cfg

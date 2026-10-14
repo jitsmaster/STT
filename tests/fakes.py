@@ -1,3 +1,4 @@
+import threading
 import time
 
 import numpy as np
@@ -5,16 +6,25 @@ from stt.engines.base import Hints, Transcript
 
 
 class FakeEngine:
-    """Returns the queued replies in order and records the hints it was given."""
+    """Returns the queued replies in order (an Exception reply is raised) and records the hints and audio it was given.
+    With a `gate` (a threading.Event) every call blocks until the gate is set."""
 
-    def __init__(self, name, replies):
+    def __init__(self, name, replies, gate: threading.Event | None = None):
         self.name = name
         self.replies = list(replies)
         self.hints: list[Hints] = []
+        self.audios: list = []
+        self.gate = gate
 
     def transcribe(self, audio, hints):
         self.hints.append(hints)
-        return Transcript(self.replies.pop(0), "en", 0.9, 0.01)
+        self.audios.append(audio)
+        if self.gate is not None:
+            self.gate.wait(5)
+        reply = self.replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return Transcript(reply, "en", 0.9, 0.01)
 
 
 class ScriptEndpointer:

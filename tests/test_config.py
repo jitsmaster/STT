@@ -38,6 +38,8 @@ def test_state_dir_follows_the_dsh_environment(monkeypatch, tmp_path):
     'wake_enabled = "false"', 'glossary = "worktree"', 'max_utterance_s = "30"', 'port = "8890"', "port = true",
     "port = 8890.5", "hotkey = 5", "command_engine = 3", "device = true", "silence_end_s = 0", "no_speech_s = -1",
     "min_speech_s = 0", "state_dir = ''", "vad = 'nope'", "glossary = [1]", "wake_threshold = 0", "max_utterance_s = nan",
+    "end_words = 'over'", "end_words = [1]", "end_words = ['']", "end_words = ['  ']", "end_gap_s = 0", "end_gap_s = -0.5",
+    "end_lead_gap_s = 0", "end_lead_gap_s = 'x'",
 ])
 def test_wrong_types_and_out_of_range_values_are_rejected(tmp_path, line):
     p = tmp_path / "c.toml"
@@ -69,3 +71,14 @@ def test_relative_model_paths_resolve_against_the_config_file_not_the_working_di
     assert cfg.wake_model_dir == str(tmp_path / "k")
     assert cfg.command_engine == "sensevoice:" + str(tmp_path / "models" / "sv")
     assert load_config(None).command_engine == "faster-whisper:small"
+
+
+def test_end_word_defaults_and_overrides(tmp_path):
+    cfg = load_config(None)
+    assert (cfg.end_words, cfg.end_gap_s, cfg.end_lead_gap_s) == (("over",), 0.6, 0.4)
+    p = tmp_path / "c.toml"
+    p.write_text("end_words = ['over', 'done']\nend_gap_s = 0.8\nend_lead_gap_s = 0.3\n", encoding="utf-8")
+    cfg = load_config(p)
+    assert (cfg.end_words, cfg.end_gap_s, cfg.end_lead_gap_s) == (("over", "done"), 0.8, 0.3)
+    p.write_text("end_words = []\n", encoding="utf-8")
+    assert load_config(p).end_words == ()  # an empty list turns the feature off
